@@ -35,6 +35,11 @@ test-suite eventjournal-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   build-depends:       base
+                     , tasty
+                     , tasty-hunit
+                     , tasty-quickcheck
+                     , tasty-rerun
+                     , tasty-hspec
                      , eventjournal
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
