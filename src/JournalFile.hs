@@ -9,6 +9,7 @@ import System.Posix.Memory
 import System.Posix.IO
 import Control.Monad.Trans.State
 import Control.Monad.IO.Class
+import qualified Data.ByteString.Char8 as C
 
 type Journal p = StateT (MemoryMappedFile p) IO
 
@@ -34,8 +35,8 @@ createJournalFile fp size = do
 writeChar :: Char -> Journal p ()
 writeChar c = do
   mmf <- get
-  liftIO $ poke (currentPtr mmf) c
-  put mmf { currentPtr = plusPtr (currentPtr mmf) (sizeOf c) } 
+  liftIO $ pokeElemOff (currentPtr mmf) 0 (C.singleton c)
+  put mmf { currentPtr = plusPtr (currentPtr mmf) (sizeOf c) }
   return ()
 
 openTempJournalFile :: FilePath -> String -> Integer -> IO FilePath
