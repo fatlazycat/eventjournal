@@ -4,6 +4,9 @@ import System.IO
 import Foreign.Ptr
 import System.Posix.Memory
 import System.Posix.IO
+import Control.Monad.State.Strict
+
+newtype Journal a = State (MemoryMappedFile a)
 
 data MemoryMappedFile a = MMF (Ptr a) (Ptr a)
 
