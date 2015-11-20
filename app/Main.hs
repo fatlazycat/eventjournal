@@ -8,8 +8,9 @@ main :: IO ()
 main = do
   initState <- createJournalFile "test.data" 1024
   runStateT (do
-    write 'a'
-    write 'b'
+    write 'c'
+    write 'd'
+    sync
             ) initState
   return ()
 

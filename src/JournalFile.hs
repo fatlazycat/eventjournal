@@ -9,6 +9,7 @@ import System.Posix.Memory
 import System.Posix.IO
 import Control.Monad.Trans.State
 import Control.Monad.IO.Class
+import Debug.Trace
 
 type Journal a = StateT (MemoryMappedFile a) IO
 
@@ -32,6 +33,8 @@ createJournalFile fp size = do
 write :: Storable a => a -> Journal a ()
 write x = do
   mmf <- get
+  alignmentSize <- liftIO $ return (alignment x)
+  liftIO $ trace("alignment size = " ++ show alignmentSize) return ()
   liftIO $ pokeElemOff (currentPtr mmf) 0 x
   put mmf { currentPtr = plusPtr (currentPtr mmf) (sizeOf x) }
   return ()
