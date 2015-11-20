@@ -15,8 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
-                     , JournalFile
+  exposed-modules:     JournalFile
                      , Event
   build-depends:       base >= 4.7 && < 5
                      , unix-memory == 0.1.2
@@ -40,6 +39,8 @@ test-suite eventjournal-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+  other-modules:       EventTests
+                     , JournalFileTests
   build-depends:       base
                      , tasty
                      , tasty-hunit

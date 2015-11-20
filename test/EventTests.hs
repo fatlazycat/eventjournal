@@ -15,7 +15,7 @@ specTests = testGroup "event tests" <$> sequence [serialization]
 newtype EventArbitrary = EventArbitrary Event deriving (Show, Eq)
 
 serialization :: IO TestTree
-serialization = testSpec "serialization" $
+serialization = testSpec "event tests" $
   describe "seriealization" $ do
     it "should encode then decode to the original" $ property $
       \((EventArbitrary x) :: EventArbitrary) -> decode (encode x) == Right x
