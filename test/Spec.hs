@@ -1,3 +1,4 @@
+import           EventTests
 import           JournalFileTests
 import           Test.Tasty
 import           Test.Tasty.Ingredients.Rerun
@@ -7,4 +8,6 @@ main :: IO ()
 main = allTests >>= defaultMainWithIngredients [rerunningTests [consoleTestReporter]]
 
 allTests :: IO TestTree
-allTests = testGroup "All tests" <$> sequence [JournalFileTests.specTests]
+allTests = testGroup "All tests" <$>
+  sequence [JournalFileTests.specTests
+           , EventTests.specTests]
