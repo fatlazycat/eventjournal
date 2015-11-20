@@ -12,13 +12,15 @@ import           Data.ByteString.Arbitrary
 specTests :: IO TestTree
 specTests = testGroup "event tests" <$> sequence [serialization]
 
+newtype EventArbitrary = EventArbitrary Event deriving (Show, Eq)
+
 serialization :: IO TestTree
 serialization = testSpec "serialization" $
   describe "seriealization" $ do
     it "should encode then decode to the original" $ property $
-      \(x :: Event) -> decode (encode x) == Right x
+      \((EventArbitrary x) :: EventArbitrary) -> decode (encode x) == Right x
 
-instance Arbitrary Event where
+instance Arbitrary EventArbitrary where
   arbitrary = do
     aId <- arbitrary
     aVer <- arbitrary
@@ -26,4 +28,4 @@ instance Arbitrary Event where
     t <- arbitrary
     eId <- arbitrary
     p <- arbitrary
-    return (Event aId aVer uId t eId (fromABS p))
+    return (EventArbitrary $ Event aId aVer uId t eId (fromABS p))
