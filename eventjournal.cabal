@@ -19,6 +19,7 @@ library
                      , Event
   build-depends:       base >= 4.7 && < 5
                      , unix-memory == 0.1.2
+                     , mmap
                      , unix
                      , transformers
                      , bytestring
