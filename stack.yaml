@@ -6,7 +6,11 @@ resolver: lts-3.14
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
-- location: '/Users/graham/Development/GitHub/tsuraan/bytestring-arbitrary'
+# - location: '/Users/graham/Development/GitHub/tsuraan/bytestring-arbitrary'
+#   extra-dep: true
+- location:
+    git: 'git@github.com:tsuraan/bytestring-arbitrary.git'
+    commit: '4325e4469d0627f30971ced4ffb8d9b3d110a2ad'
   extra-dep: true
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
