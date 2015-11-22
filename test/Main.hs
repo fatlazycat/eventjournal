@@ -1,3 +1,5 @@
+module Main where
+
 import           EventTests
 import           JournalFileTests
 import           Test.Tasty
@@ -10,4 +12,4 @@ main = allTests >>= defaultMainWithIngredients [rerunningTests [consoleTestRepor
 allTests :: IO TestTree
 allTests = testGroup "All tests" <$>
   sequence [JournalFileTests.specTests
-           , EventTests.specTests]
+          , EventTests.specTests]
