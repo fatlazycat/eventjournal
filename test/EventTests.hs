@@ -7,12 +7,18 @@ module EventTests (
 import qualified Data.ByteString           as BS
 import           Data.ByteString.Arbitrary
 import qualified Data.ByteString.Char8     as C
+import           Data.ByteString.Internal
 import           Data.Primitive.MachDeps
 import           Data.Serialize
 import           Debug.Trace
 import           Event
+import           Foreign.ForeignPtr
+import           Foreign.Marshal.Utils
+import           Foreign.Ptr
+import           JournalFile
 import           System.Directory
 import           System.IO
+import           System.IO.MMap
 import           Test.QuickCheck
 import           Test.Tasty
 import           Test.Tasty.Hspec
@@ -38,6 +44,15 @@ serialization = testSpec "event tests" $
       x' <- BS.hGet h' $ BS.length bytes
       removeFile fp
       decode x' `shouldBe` Right x
+    it "also if we pass through a memory map" $ do
+      EventArbitrary x <- generate arbitrary
+      let bytes = encode x
+      let (fptr, offset, length) = toForeignPtr bytes
+      fp <- openTempJournalFile "test-output" "test" $ toInteger (BS.length bytes)
+      (ptr,rawsize,offset',size) <- mmapFilePtr fp ReadWrite Nothing
+      withForeignPtr fptr (\x' -> copyBytes (plusPtr ptr offset') (plusPtr x' offset) size)
+      munmapFilePtr ptr rawsize
+      return ()
 
 -- sampleEvent = Event 1 1 1 1 1 $ C.pack "blah"
 

@@ -1,21 +1,21 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module JournalFile (createJournalFile, write, sync) where
+module JournalFile (createJournalFile, write, sync, openTempJournalFile) where
 
-import System.IO
-import Foreign.Ptr
-import Foreign.Storable
-import System.Posix.Memory
-import System.Posix.IO
-import Control.Monad.Trans.State
-import Control.Monad.IO.Class
-import Debug.Trace
+import           Control.Monad.IO.Class
+import           Control.Monad.Trans.State
+import           Debug.Trace
+import           Foreign.Ptr
+import           Foreign.Storable
+import           System.IO
+import           System.Posix.IO
+import           System.Posix.Memory
 
 type Journal a = StateT (MemoryMappedFile a) IO
 
 data MemoryMappedFile a = MMF {
     startingPtr :: Ptr a
-  , currentPtr :: Ptr a
+  , currentPtr  :: Ptr a
 }
 
 allPermissions :: [MemoryProtection]
