@@ -1,13 +1,21 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module EventTests where
+module EventTests (
+  specTests
+                  ) where
 
+import qualified Data.ByteString           as BS
+import           Data.ByteString.Arbitrary
+import qualified Data.ByteString.Char8     as C
+import           Data.Primitive.MachDeps
 import           Data.Serialize
+import           Debug.Trace
 import           Event
+import           System.Directory
+import           System.IO
 import           Test.QuickCheck
 import           Test.Tasty
 import           Test.Tasty.Hspec
-import           Data.ByteString.Arbitrary
 
 specTests :: IO TestTree
 specTests = testGroup "event tests" <$> sequence [serialization]
@@ -16,9 +24,24 @@ newtype EventArbitrary = EventArbitrary Event deriving (Show, Eq)
 
 serialization :: IO TestTree
 serialization = testSpec "event tests" $
-  describe "seriealization" $ do
+  describe "serialization" $ do
     it "should encode then decode to the original" $ property $
       \((EventArbitrary x) :: EventArbitrary) -> decode (encode x) == Right x
+    it "same if we process through a file" $ do
+      (fp, h) <- openBinaryTempFile "test-output" "test"
+      -- EventArbitrary x <- generate arbitrary
+      let x = sampleEvent
+      let bytes = encode x
+      BS.hPut h bytes
+      hFlush h
+      trace ("length = " ++ show (BS.length bytes)) return ()
+      trace ("filepath = " ++ show fp) return ()
+      x' <- BS.hGet h $ BS.length bytes
+      hClose h
+      removeFile fp
+      decode x' `shouldBe` Right x
+
+sampleEvent = Event 1 1 1 1 1 $ C.pack "blah"
 
 instance Arbitrary EventArbitrary where
   arbitrary = do
