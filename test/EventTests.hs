@@ -29,19 +29,17 @@ serialization = testSpec "event tests" $
       \((EventArbitrary x) :: EventArbitrary) -> decode (encode x) == Right x
     it "same if we process through a file" $ do
       (fp, h) <- openBinaryTempFile "test-output" "test"
-      -- EventArbitrary x <- generate arbitrary
-      let x = sampleEvent
+      EventArbitrary x <- generate arbitrary
       let bytes = encode x
       BS.hPut h bytes
       hFlush h
-      trace ("length = " ++ show (BS.length bytes)) return ()
-      trace ("filepath = " ++ show fp) return ()
-      x' <- BS.hGet h $ BS.length bytes
       hClose h
+      h' <- openBinaryFile fp ReadMode
+      x' <- BS.hGet h' $ BS.length bytes
       removeFile fp
       decode x' `shouldBe` Right x
 
-sampleEvent = Event 1 1 1 1 1 $ C.pack "blah"
+-- sampleEvent = Event 1 1 1 1 1 $ C.pack "blah"
 
 instance Arbitrary EventArbitrary where
   arbitrary = do
