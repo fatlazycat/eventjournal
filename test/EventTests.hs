@@ -51,8 +51,9 @@ serialization = testSpec "event tests" $
       fp <- openTempJournalFile "test-output" "test" $ toInteger (BS.length bytes)
       (ptr,rawsize,offset',size) <- mmapFilePtr fp ReadWrite Nothing
       withForeignPtr fptr (\x' -> copyBytes (plusPtr ptr offset') (plusPtr x' offset) size)
+      bs' <- create size (\x'' -> copyBytes x'' (plusPtr ptr offset') size)
       munmapFilePtr ptr rawsize
-      return ()
+      decode bs' `shouldBe` Right x
 
 -- sampleEvent = Event 1 1 1 1 1 $ C.pack "blah"
 
