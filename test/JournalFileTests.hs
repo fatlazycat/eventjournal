@@ -1,4 +1,5 @@
 module JournalFileTests where
+
 import           Test.Tasty
 import           Test.Tasty.Hspec
 
