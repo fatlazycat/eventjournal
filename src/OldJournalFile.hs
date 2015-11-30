@@ -1,30 +1,34 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module JournalFile (createJournalFile, write, sync, openTempFile) where
+module OldJournalFile (createJournalFile, write, sync, openTempFile) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Debug.Trace
-import           Foreign.ForeignPtr
 import           Foreign.Ptr
 import           Foreign.Storable
 import           System.IO
-import           System.IO.MMap
-import qualified System.Posix.IO           as PIO
+import           System.Posix.IO
+import           System.Posix.Memory
 
 type Journal a = StateT (MemoryMappedFile a) IO
 
 data MemoryMappedFile a = MMF {
-    memoryPtr      :: ForeignPtr a
-  , startingOffset :: Int
-  , size           :: Int
-  , currentOffset  :: Int
+    startingPtr :: Ptr a
+  , currentPtr  :: Ptr a
 }
+
+allPermissions :: [MemoryProtection]
+allPermissions = [MemoryProtectionRead, MemoryProtectionWrite, MemoryProtectionExecute]
 
 createJournalFile :: FilePath -> Integer -> IO (MemoryMappedFile a)
 createJournalFile fp size = do
-  (fPtr, offset, size) <- mmapFileForeignPtr fp ReadWriteEx Just(0, size)
-  return (MMF fPtr offset size offset)
+  h <- openBinaryFile fp ReadWriteMode
+  hSetFileSize h size
+  hClose h
+  fd <- openFd fp ReadWrite Nothing defaultFileFlags
+  ptr <- memoryMap Nothing (fromInteger size) allPermissions MemoryMapShared (Just fd) 0
+  return (MMF ptr ptr)
 
 write :: Storable a => a -> Journal a ()
 write x = do
