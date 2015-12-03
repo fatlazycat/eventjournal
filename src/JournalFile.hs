@@ -44,12 +44,20 @@ write x = do
 sync :: Journal ByteString ()
 sync = do
   mmf <- get
-  let numBytesToSync = currentOffset mmf - lastSyncedOffset mmf
+  let currentOffsetMMF = currentOffset mmf
+  let numBytesToSync = currentOffsetMMF - lastSyncedOffset mmf
   liftIO $ withForeignPtr (memoryFPtr mmf)
-                          (\memPtr -> let syncPtr = plusPtr memPtr (lastSyncedOffset mmf)
-                                          syncSize = FCT.CSize (fromIntegral numBytesToSync)
+                          (\memPtr -> let (syncPagedOffset, syncPagedSize) = syncPoints (lastSyncedOffset mmf) numBytesToSync SPM.sysconfPageSize
+                                          syncPtr = plusPtr memPtr syncPagedOffset
+                                          syncSize = FCT.CSize (fromIntegral syncPagedSize)
                                       in SPM.memorySync syncPtr syncSize [SPM.MemorySyncSync])
+  put mmf { lastSyncedOffset = currentOffsetMMF + numBytesToSync }
   return ()
+
+syncPoints :: Int -> Int -> Int -> (Int, Int)
+syncPoints start size pageSize = (pagedStart, pagedSize)
+                                 where pagedStart = quot start pageSize * pageSize
+                                       pagedSize = (quot (start + size) pageSize + 1) * pageSize - pagedStart
 
 openTempJournalFile :: FilePath -> String -> Integer -> IO FilePath
 openTempJournalFile fpTemplate s size = do
