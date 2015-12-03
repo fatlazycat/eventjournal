@@ -5,6 +5,7 @@ import           Control.Monad.Trans.State
 import           Data.ByteString
 import qualified Data.ByteString.Internal  as BSI
 -- import           Debug.Trace
+import qualified Foreign.C.Types           as FCT
 import           Foreign.ForeignPtr
 import qualified Foreign.Marshal.Utils     as FMU
 import           Foreign.Ptr
@@ -15,16 +16,17 @@ import qualified System.Posix.Memory       as SPM
 type Journal a = StateT (MemoryMappedFile a) IO
 
 data MemoryMappedFile a = MMF {
-    memoryFPtr     :: ForeignPtr a
-  , startingOffset :: Int
-  , mappedSize     :: Int
-  , currentOffset  :: Int
+    memoryFPtr       :: ForeignPtr a
+  , startingOffset   :: Int
+  , mappedSize       :: Int
+  , currentOffset    :: Int
+  , lastSyncedOffset :: Int
 }
 
 createJournalFile :: FilePath -> Int -> IO (MemoryMappedFile a)
 createJournalFile fp size = do
   (fPtr, offset, createdSize) <- mmapFileForeignPtr fp ReadWriteEx (Just(0, size))
-  return (MMF fPtr offset createdSize offset)
+  return (MMF fPtr offset createdSize offset offset)
 
 write :: ByteString -> Journal ByteString ()
 write x = do
@@ -38,10 +40,15 @@ write x = do
   put mmf { currentOffset = currentOffset mmf + bsLength }
   return ()
 
+-- Implement boundary syncing on the alignement size for a sync
 sync :: Journal ByteString ()
 sync = do
   mmf <- get
-  liftIO $ withForeignPtr (memoryFPtr mmf) (\memPtr -> SPM.memorySync memPtr 4096 [SPM.MemorySyncSync])
+  let numBytesToSync = currentOffset mmf - lastSyncedOffset mmf
+  liftIO $ withForeignPtr (memoryFPtr mmf)
+                          (\memPtr -> let syncPtr = plusPtr memPtr (lastSyncedOffset mmf)
+                                          syncSize = FCT.CSize (fromIntegral numBytesToSync)
+                                      in SPM.memorySync syncPtr syncSize [SPM.MemorySyncSync])
   return ()
 
 openTempJournalFile :: FilePath -> String -> Integer -> IO FilePath
