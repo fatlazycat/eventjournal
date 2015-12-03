@@ -1,48 +1,51 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
-module JournalFile (createJournalFile, write, sync, openTempFile) where
+module JournalFile (createJournalFile, write, sync, openTempJournalFile) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
-import           Debug.Trace
+import           Data.ByteString
+import qualified Data.ByteString.Internal  as BSI
+-- import           Debug.Trace
 import           Foreign.ForeignPtr
+import qualified Foreign.Marshal.Utils     as FMU
 import           Foreign.Ptr
-import           Foreign.Storable
 import           System.IO
 import           System.IO.MMap
-import qualified System.Posix.IO           as PIO
+import qualified System.Posix.Memory       as SPM
 
 type Journal a = StateT (MemoryMappedFile a) IO
 
 data MemoryMappedFile a = MMF {
-    memoryPtr      :: ForeignPtr a
+    memoryFPtr     :: ForeignPtr a
   , startingOffset :: Int
-  , size           :: Int
+  , mappedSize     :: Int
   , currentOffset  :: Int
 }
 
-createJournalFile :: FilePath -> Integer -> IO (MemoryMappedFile a)
+createJournalFile :: FilePath -> Int -> IO (MemoryMappedFile a)
 createJournalFile fp size = do
-  (fPtr, offset, size) <- mmapFileForeignPtr fp ReadWriteEx Just(0, size)
-  return (MMF fPtr offset size offset)
+  (fPtr, offset, createdSize) <- mmapFileForeignPtr fp ReadWriteEx (Just(0, size))
+  return (MMF fPtr offset createdSize offset)
 
-write :: Storable a => a -> Journal a ()
+write :: ByteString -> Journal ByteString ()
 write x = do
   mmf <- get
-  alignmentSize <- liftIO $ return (alignment x)
-  liftIO $ trace("alignment size = " ++ show alignmentSize) return ()
-  liftIO $ pokeElemOff (currentPtr mmf) 0 x
-  put mmf { currentPtr = plusPtr (currentPtr mmf) (sizeOf x) }
+  let (bsFPtr, bsOffset, bsLength) = BSI.toForeignPtr x
+  liftIO $ withForeignPtr bsFPtr
+                          (\bsPtr -> withForeignPtr (memoryFPtr mmf)
+                                                    (\memPtr -> let src = plusPtr bsPtr bsOffset
+                                                                    dest = plusPtr memPtr (currentOffset mmf)
+                                                                in FMU.copyBytes dest src bsLength))
+  put mmf { currentOffset = currentOffset mmf + bsLength }
   return ()
 
-sync :: Journal a ()
+sync :: Journal ByteString ()
 sync = do
   mmf <- get
-  liftIO $ memorySync (startingPtr mmf) 4096 [MemorySyncSync]
+  liftIO $ withForeignPtr (memoryFPtr mmf) (\memPtr -> SPM.memorySync memPtr 4096 [SPM.MemorySyncSync])
   return ()
 
-openTempFile :: FilePath -> String -> Integer -> IO FilePath
-openTempFile fpTemplate s size = do
+openTempJournalFile :: FilePath -> String -> Integer -> IO FilePath
+openTempJournalFile fpTemplate s size = do
   (fp,h) <- openBinaryTempFile fpTemplate s
   hSetFileSize h size
   hClose h

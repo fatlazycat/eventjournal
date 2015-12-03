@@ -34,6 +34,7 @@ executable eventjournal-exe
                      , unix-memory == 0.1.2
                      , eventjournal
                      , transformers
+                     , bytestring
   default-language:    Haskell2010
 
 test-suite eventjournal-test

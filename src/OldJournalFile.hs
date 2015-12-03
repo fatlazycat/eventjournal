@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module OldJournalFile (createJournalFile, write, sync, openTempFile) where
+module OldJournalFile (createJournalFile, write, sync, openTempJournalFile) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
@@ -45,8 +45,8 @@ sync = do
   liftIO $ memorySync (startingPtr mmf) 4096 [MemorySyncSync]
   return ()
 
-openTempFile :: FilePath -> String -> Integer -> IO FilePath
-openTempFile fpTemplate s size = do
+openTempJournalFile :: FilePath -> String -> Integer -> IO FilePath
+openTempJournalFile fpTemplate s size = do
   (fp,h) <- openBinaryTempFile fpTemplate s
   hSetFileSize h size
   hClose h

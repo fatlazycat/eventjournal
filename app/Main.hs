@@ -2,13 +2,14 @@ module Main where
 
 import JournalFile
 import Control.Monad.Trans.State
+import qualified Data.ByteString.Char8 as BSC
 
 main :: IO ()
 main = do
   initState <- createJournalFile "test.data" 1024
   evalStateT (do
-    write 'c'
-    write 'd'
+    write (BSC.pack "c")
+    write (BSC.pack "d")
     sync
             ) initState
   return ()

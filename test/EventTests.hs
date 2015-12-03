@@ -45,7 +45,7 @@ serialization = testSpec "event tests" $
       EventArbitrary x <- generate arbitrary
       let bytes = encode x
       let (fptr, offset, _) = toForeignPtr bytes
-      fp <- openTempFile "test-output" "test" $ toInteger (BS.length bytes)
+      fp <- openTempJournalFile "test-output" "test" $ toInteger (BS.length bytes)
       (ptr,rawsize,offset',size) <- mmapFilePtr fp ReadWrite Nothing
       withForeignPtr fptr (\x' -> copyBytes (plusPtr ptr offset') (plusPtr x' offset) size)
       bs' <- create size (\x'' -> copyBytes x'' (plusPtr ptr offset') size)
