@@ -10,6 +10,8 @@ main = do
   evalStateT (do
     write (BSC.pack "c")
     write (BSC.pack "d")
+    write (BSC.pack "ef")
+    write (BSC.pack "gh")
     sync
             ) initState
   return ()
