@@ -1,4 +1,4 @@
-module JournalFile (createJournalFile, write, sync, openTempJournalFile) where
+module JournalFile (createJournalFile, write, sync, syncPoints, openTempJournalFile) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
