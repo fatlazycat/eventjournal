@@ -1,14 +1,18 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module JournalFile (createJournalFile, write, sync, syncPoints, openTempJournalFile) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Data.ByteString
 import qualified Data.ByteString.Internal  as BSI
--- import           Debug.Trace
+import qualified Data.Int                  as DI
+import qualified Data.Primitive.MachDeps   as DPM
+import           Debug.Trace
 import qualified Foreign.C.Types           as FCT
 import           Foreign.ForeignPtr
 import qualified Foreign.Marshal.Utils     as FMU
 import           Foreign.Ptr
+import           Foreign.Storable
 import           System.IO
 import           System.IO.MMap
 import qualified System.Posix.Memory       as SPM
@@ -32,15 +36,19 @@ write :: ByteString -> Journal ByteString ()
 write x = do
   mmf <- get
   let (bsFPtr, bsOffset, bsLength) = BSI.toForeignPtr x
+  liftIO $ trace("bsLength = " ++ show bsLength ++ ", length of BS = " ++ show (Data.ByteString.length x)) return ()
   liftIO $ withForeignPtr bsFPtr
                           (\bsPtr -> withForeignPtr (memoryFPtr mmf)
                                                     (\memPtr -> let src = plusPtr bsPtr bsOffset
                                                                     dest = plusPtr memPtr (currentOffset mmf)
-                                                                in FMU.copyBytes dest src bsLength))
-  put mmf { currentOffset = currentOffset mmf + bsLength }
+                                                                    destBS = plusPtr memPtr (currentOffset mmf + DPM.sIZEOF_INT64)
+                                                                    lengthOfBS :: DI.Int64 = fromIntegral bsLength
+                                                                in do
+                                                                  poke dest lengthOfBS
+                                                                  FMU.copyBytes destBS src bsLength))
+  put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT64 + bsLength }
   return ()
 
--- Implement boundary syncing on the alignement size for a sync
 sync :: Journal ByteString ()
 sync = do
   mmf <- get

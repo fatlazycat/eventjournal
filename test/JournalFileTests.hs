@@ -19,7 +19,7 @@ pageSize = testSpec "Page sign alignment" $
       syncPoints 5000 100 ps `shouldBe` (ps,ps)
     it "Start 5000 and 5000 bytes = page size and page size" $
       syncPoints 5000 5000 ps `shouldBe` (ps,ps*2)
-    it "Start 10002 and 30501 bytes = page size and page size" $
+    it "Start 10002 and 30501 bytes = 4096 and 32768" $
       syncPoints 10002 30501 ps `shouldBe` (ps*2,ps*8)
 
 temp2 :: IO TestTree

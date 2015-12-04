@@ -24,6 +24,7 @@ library
                      , transformers
                      , bytestring
                      , cereal
+                     , primitive
   default-language:    Haskell2010
 
 executable eventjournal-exe
