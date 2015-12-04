@@ -12,8 +12,15 @@ specTests = testGroup "journal file tests" <$>
 pageSize :: IO TestTree
 pageSize = testSpec "Page sign alignment" $
   describe "Page size" $ do
-    it "Ptr 0 and 100 bytes = 0 and page size" $
-      syncPoints 0 100 sysconfPageSize `shouldBe` (0,sysconfPageSize)
+    let ps = 4096
+    it "Start 0 and 100 bytes = 0 and page size" $
+      syncPoints 0 100 ps `shouldBe` (0,ps)
+    it "Start 5000 and 100 bytes = page size and page size" $
+      syncPoints 5000 100 ps `shouldBe` (ps,ps)
+    it "Start 5000 and 5000 bytes = page size and page size" $
+      syncPoints 5000 5000 ps `shouldBe` (ps,ps*2)
+    it "Start 10002 and 30501 bytes = page size and page size" $
+      syncPoints 10002 30501 ps `shouldBe` (ps*2,ps*8)
 
 temp2 :: IO TestTree
 temp2 = testSpec "OSX Specific - needs changing" $
