@@ -49,6 +49,10 @@ write x = do
   put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT64 + bsLength }
   return ()
 
+-- read :: Journal ByteString ByteString
+-- read = do
+--   mmf <- get
+
 sync :: Journal ByteString ()
 sync = do
   mmf <- get
