@@ -1,10 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module JournalFile (createJournalFile, write, sync, syncPoints, openTempJournalFile) where
+module JournalFile (createJournalFile, reset, readByteString, write, sync, syncPoints, openTempJournalFile) where
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Data.ByteString
 import qualified Data.ByteString.Internal  as BSI
+import qualified Data.ByteString.Unsafe    as BSU
 import qualified Data.Int                  as DI
 import qualified Data.Primitive.MachDeps   as DPM
 import           Debug.Trace
@@ -26,6 +27,9 @@ data MemoryMappedFile a = MMF {
   , currentOffset    :: Int
   , lastSyncedOffset :: Int
 }
+
+reset :: MemoryMappedFile a -> MemoryMappedFile a
+reset mmf = mmf { currentOffset = startingOffset mmf}
 
 createJournalFile :: FilePath -> Int -> IO (MemoryMappedFile a)
 createJournalFile fp size = do
@@ -49,9 +53,16 @@ write x = do
   put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT64 + bsLength }
   return ()
 
--- read :: Journal ByteString ByteString
--- read = do
---   mmf <- get
+readByteString :: Journal ByteString ByteString
+readByteString = do
+  mmf <- get
+  lengthOfBS <- liftIO $ withForeignPtr (memoryFPtr mmf) (\memPtr -> let srcPtr = plusPtr memPtr (currentOffset mmf)
+                                                                         l :: IO DI.Int = peek srcPtr
+                                                                     in l)
+  bs :: ByteString <- liftIO $ withForeignPtr (memoryFPtr mmf) (\memPtr -> let srcPtr = plusPtr memPtr (currentOffset mmf + DPM.sIZEOF_INT64)
+                                                                           in BSU.unsafePackCStringLen (srcPtr, lengthOfBS))
+  put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT64 + lengthOfBS }
+  return bs
 
 sync :: Journal ByteString ()
 sync = do
