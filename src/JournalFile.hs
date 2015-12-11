@@ -45,12 +45,12 @@ write x = do
                           (\bsPtr -> withForeignPtr (memoryFPtr mmf)
                                                     (\memPtr -> let src = plusPtr bsPtr bsOffset
                                                                     dest = plusPtr memPtr (currentOffset mmf)
-                                                                    destBS = plusPtr memPtr (currentOffset mmf + DPM.sIZEOF_INT64)
-                                                                    lengthOfBS :: DI.Int64 = fromIntegral bsLength
+                                                                    destBS = plusPtr memPtr (currentOffset mmf + DPM.sIZEOF_INT)
+                                                                    lengthOfBS :: DI.Int = fromIntegral bsLength
                                                                 in do
                                                                   poke dest lengthOfBS
                                                                   FMU.copyBytes destBS src bsLength))
-  put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT64 + bsLength }
+  put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT + bsLength }
   return ()
 
 readByteString :: Journal ByteString ByteString
@@ -59,9 +59,9 @@ readByteString = do
   lengthOfBS <- liftIO $ withForeignPtr (memoryFPtr mmf) (\memPtr -> let srcPtr = plusPtr memPtr (currentOffset mmf)
                                                                          l :: IO DI.Int = peek srcPtr
                                                                      in l)
-  bs :: ByteString <- liftIO $ withForeignPtr (memoryFPtr mmf) (\memPtr -> let srcPtr = plusPtr memPtr (currentOffset mmf + DPM.sIZEOF_INT64)
+  bs :: ByteString <- liftIO $ withForeignPtr (memoryFPtr mmf) (\memPtr -> let srcPtr = plusPtr memPtr (currentOffset mmf + DPM.sIZEOF_INT)
                                                                            in BSU.unsafePackCStringLen (srcPtr, lengthOfBS))
-  put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT64 + lengthOfBS }
+  put mmf { currentOffset = currentOffset mmf + DPM.sIZEOF_INT + lengthOfBS }
   return bs
 
 sync :: Journal ByteString ()
