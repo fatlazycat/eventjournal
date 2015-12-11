@@ -7,17 +7,20 @@ import           JournalFile
 main :: IO ()
 main = do
   initState <- createJournalFile "test.data" 1024
-  -- evalStateT (do
-  s <- execStateT (do
-    write (BSC.pack "c")
-    write (BSC.pack "d")
-    write (BSC.pack "ef")
-    write (BSC.pack "gh")
-    sync
+
+  s <- execStateT (
+    sequence [write (BSC.pack "c"),
+              write (BSC.pack "d"),
+              write (BSC.pack "efghijk"),
+              write (BSC.pack "lmnoppq"),
+              sync]
             ) initState
 
-  res <- evalStateT (sequence [readByteString, readByteString, readByteString, readByteString]) $ reset s
-  let resultString = map BSC.unpack res
-  mapM_ putStrLn resultString
+  res <- evalStateT (sequence [readByteString,
+                               readByteString,
+                               readByteString,
+                               readByteString]) $ reset s
+
+  mapM_ (putStrLn . BSC.unpack) res
 
   return ()
