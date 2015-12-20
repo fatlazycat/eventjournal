@@ -14,12 +14,13 @@ main = do
   let sampleEvent1 = Event 1 1 1 1 1 $ BSC.pack "blah"
   let sampleEvent2 = Event 2 2 2 2 2 $ BSC.pack "more blah"
 
-  s <- execStateT (
-    sequence [
-              write $ encode sampleEvent1,
-              write $ encode sampleEvent2,
-              sync]
-            ) initState
+  -- s <- execStateT (
+  --   sequence [
+  --             write $ encode sampleEvent1,
+  --             write $ encode sampleEvent2,
+  --             sync]
+  --           ) initState
+  let s = initState
 
   res <- evalStateT (sequence [
                                readByteString,
