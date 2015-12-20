@@ -18,14 +18,6 @@ addons:
     packages:
     - libgmp-dev
 
-# addons:
-#   apt:
-#     sources:
-#     - hvr-ghc
-#     packages:
-#     - ghc-7.10.3
-#     - libgmp-dev
-
 before_install:
   # stack
   - mkdir -p ~/.local/bin
