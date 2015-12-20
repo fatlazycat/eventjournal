@@ -9,7 +9,7 @@ packages:
 # - location: '/Users/graham/Development/GitHub/tsuraan/bytestring-arbitrary'
 #   extra-dep: true
 - location:
-    git: 'git@github.com:fatlazycat/bytestring-arbitrary.git'
+    git: 'https://github.com/fatlazycat/bytestring-arbitrary.git'
     commit: '014ea8fd6dc7ec4d3e0c0c4843b6aa4295a4b4c3'
   extra-dep: true
 
