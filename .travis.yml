@@ -1,14 +1,22 @@
-language: haskell
+# Use container infrastructure to enable caching
+sudo: false
+
+# Choose a lightweight base image; we provide our own build tools.
+language: c
 
 branches:
   only:
     - master
 
-sudo: false
-
 cache:
   directories:
     - $HOME/.stack/
+
+# GHC depends on GMP. You can add other dependencies here as well.
+addons:
+  apt:
+    packages:
+    - libgmp-dev
 
 # addons:
 #   apt:
