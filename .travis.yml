@@ -19,8 +19,9 @@ addons:
     - libgmp-dev
 
 before_install:
+  # test directory
+  - mkdir -p $TRAVIS_BUILD_DIR/test-output
   # stack
-  - mkdir -p ~/test-output
   - mkdir -p ~/.local/bin
   - export PATH=~/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
