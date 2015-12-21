@@ -8,15 +8,15 @@ packages:
 - '.'
 # - location: '/Users/graham/Development/GitHub/tsuraan/bytestring-arbitrary'
 #   extra-dep: true
-- location:
-    git: 'https://github.com/fatlazycat/bytestring-arbitrary.git'
-    commit: '014ea8fd6dc7ec4d3e0c0c4843b6aa4295a4b4c3'
-  extra-dep: true
+# - location:
+#     git: 'https://github.com/fatlazycat/bytestring-arbitrary.git'
+#     commit: '014ea8fd6dc7ec4d3e0c0c4843b6aa4295a4b4c3'
+#   extra-dep: true
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
 - unix-memory-0.1.2
-#- bytestring-arbitrary-0.0.4
+- bytestring-arbitrary-0.1.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}
