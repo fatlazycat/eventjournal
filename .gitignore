@@ -18,3 +18,4 @@ cabal.sandbox.config
 test-output
 .tasty-rerun-log
 test.data
+README.html
