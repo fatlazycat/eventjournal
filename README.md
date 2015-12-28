@@ -4,6 +4,4 @@
 ***
 
 # eventjournal
-Event Journal in Haskell - WIP
-
-
+Event Journal in Haskell - WIP !!!
