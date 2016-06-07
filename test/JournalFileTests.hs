@@ -1,7 +1,7 @@
 module JournalFileTests where
 
+import           JournalFile
 import           System.Posix.Memory
-import JournalFile
 import           Test.Tasty
 import           Test.Tasty.Hspec
 
